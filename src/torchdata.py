@@ -99,12 +99,6 @@ class DevDataset(Dataset):
         target = self.target_list[i][j]
         return data, target
 
-    def test_get(self, index):
-        i, j = self._get_index(index)
-        data = self.data_list[i][:, j:j + self.window]
-        target = self.target_list[i][j]
-        print(i, j, data.shape, target.shape)
-
 
 if __name__ == '__main__':
     fpath = '../../data_set/N-CMAPSS_DS02-006.h5'

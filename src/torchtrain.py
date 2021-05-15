@@ -1,7 +1,7 @@
 #!python3
 
 from model import PHMModel
-from dataset import load_traindata
+from torchdata import load_traindata
 from argparse import ArgumentParser
 
 
