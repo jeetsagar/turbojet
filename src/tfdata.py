@@ -87,6 +87,8 @@ class DataProvider:
         i, j = self._get_index(index)
         data = self.data_list[i][j:j + self.window, :]
         target = self.target_list[i][j]
+        data = np.expand_dims(data, axis=0)
+        target = np.expand_dims(target, axis=0)
         return data, target
 
 
@@ -99,8 +101,8 @@ def generate_data(filepath, units):
 
 def get_dataset(filepath, units):
     return tf.data.Dataset.from_generator(generate_data, args=[filepath, units],
-                                          output_signature=(tf.TensorSpec(shape=(50, 18), dtype=tf.float32),
-                                                            tf.TensorSpec(shape=(1, ), dtype=tf.float32)))
+                                          output_signature=(tf.TensorSpec(shape=(1, 50, 18), dtype=tf.float32),
+                                                            tf.TensorSpec(shape=(1, 1), dtype=tf.float32)))
 
 
 if __name__ == '__main__':
