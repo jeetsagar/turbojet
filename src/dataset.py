@@ -20,11 +20,8 @@ def normalize_data(x):
 
 
 def load_traindata(params):
-    datapath = params.traindata
-    units = params.units
-    batch_size = params.batch_size
-    dataset = DevDataset(datapath, units)
-    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
+    dataset = DevDataset(params.traindata, params.units)
+    train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=True)
     return train_loader
 
 
@@ -60,6 +57,10 @@ class DevDataset(Dataset):
             unit_target = Y_dev[unit_ind]
             unit_target = unit_target[self.window:]
 
+            # using a subset of the data for testing
+            unit_data = unit_data[:1024+self.window]
+            unit_target = unit_target[:1024]
+
             # remove the transpose() call when using tensorflow
             # tensorflow uses channels last, but pytorch uses channels first
             data_tensor = torch.Tensor(unit_data).transpose(0, 1)
@@ -79,9 +80,10 @@ class DevDataset(Dataset):
         n = max(1, min(self.total_length, n))
         i = bisect.bisect_left(self.total_elem, n)
         if i == 0:
-            return i, n-1
-        m = self.total_elem[i]
-        j = n - m - 1
+            j = n - 1
+        else:
+            m = self.total_elem[i-1]
+            j = n - m - 1
         return i, j
 
     def __len__(self):
@@ -93,14 +95,18 @@ class DevDataset(Dataset):
         target = self.target_list[i][j]
         return data, target
 
+    def test_get(self, index):
+        i, j = self._get_index(index)
+        data = self.data_list[i][:, j:j + self.window]
+        target = self.target_list[i][j]
+        print(i, j, data.shape, target.shape)
+
 
 if __name__ == '__main__':
     fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
     print_keys(fpath)
-    ds = DevDataset(fpath, [2, 5, 10, 16, 18, 20])
+    ds = DevDataset(fpath, [2, 5, 10])
     print(ds.units)
     print(ds.num_units)
     print(ds.length_list)
     print(len(ds))
-    a, b = ds[0]
-    a, b = ds[len(ds)-1]

@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument('--overwrite', help='overwrite old models', action='store_true')
 
     # training hyperparameters
-    parser.add_argument('-b', '--batch-size', default=16, type=int)
+    parser.add_argument('-b', '--batch-size', default=128, type=int)
     parser.add_argument('-e', '--num-epochs', default=20, type=int)
 
     # training options

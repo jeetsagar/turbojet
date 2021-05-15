@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# ignore checkpoints
+checkpoints
+
 # C extensions
 *.so
 
