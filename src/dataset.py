@@ -58,8 +58,8 @@ class DevDataset(Dataset):
             unit_target = unit_target[self.window:]
 
             # using a subset of the data for testing
-            unit_data = unit_data[:1024+self.window]
-            unit_target = unit_target[:1024]
+            # unit_data = unit_data[:1024+self.window]
+            # unit_target = unit_target[:1024]
 
             # remove the transpose() call when using tensorflow
             # tensorflow uses channels last, but pytorch uses channels first
