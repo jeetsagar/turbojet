@@ -1,14 +1,12 @@
 #!python3
 
 import h5py
-# import torch
+import torch
 import numpy as np
-import pandas as pd
 
 from explore import print_keys
 
-
-# from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader
 
 
 def normalize_data(x):
@@ -20,44 +18,19 @@ def normalize_data(x):
     return x_norm
 
 
-def check_dev_data(filename):
-    with h5py.File(filename, 'r') as hdf:
-        W_dev = np.array(hdf.get('W_dev'))  # W
-        X_s_dev = np.array(hdf.get('X_s_dev'))  # X_s
-        X_v_dev = np.array(hdf.get('X_v_dev'))  # X_v
-        T_dev = np.array(hdf.get('T_dev'))  # T
-        Y_dev = np.array(hdf.get('Y_dev'))  # RUL
-        A_dev = np.array(hdf.get('A_dev'))  # Auxiliary
-    return None
+def load_traindata(params):
+    datapath = params.traindata
+    unit = params.unit
+    batch_size = params.batch_size
+    dataset = DevDataset(datapath, unit)
+    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
+    return train_loader
 
 
-def check_test_data(filename):
-    with h5py.File(filename, 'r') as hdf:
-        W_test = np.array(hdf.get('W_test'))  # W
-        X_s_test = np.array(hdf.get('X_s_test'))  # X_s
-        X_v_test = np.array(hdf.get('X_v_test'))  # X_v
-        T_test = np.array(hdf.get('T_test'))  # T
-        Y_test = np.array(hdf.get('Y_test'))  # RUL
-        A_test = np.array(hdf.get('A_test'))  # Auxiliary
-    return None
+class DevDataset(Dataset):
 
-
-def get_valid_dataset(filename, unit=2):
-    with h5py.File(filename, 'r') as hdf:
-        W_dev = np.array(hdf.get('W_dev'))
-        X_s_dev = np.array(hdf.get('X_s_dev'))
-        A_dev = np.array(hdf.get('A_dev'))
-        Y_dev = np.array(hdf.get('Y_dev'))
-    unit_array = np.array(A_dev[:, 0], dtype=np.int32)
-    dev_data = np.concatenate((W_dev, X_s_dev, Y_dev), axis=1)
-    unit_data = dev_data[unit_array == unit]
-    return unit_data
-
-
-class DevDataset:
-
-    def __init__(self, filename, unit=2):
-        with h5py.File(filename, 'r') as hdf:
+    def __init__(self, filepath, unit=2):
+        with h5py.File(filepath, 'r') as hdf:
             W_dev = np.array(hdf.get('W_dev'))
             X_s_dev = np.array(hdf.get('X_s_dev'))
             A_dev = np.array(hdf.get('A_dev'))
@@ -65,25 +38,34 @@ class DevDataset:
         unit_array = np.array(A_dev[:, 0], dtype=np.int32)
 
         dev_data = np.concatenate((W_dev, X_s_dev), axis=1)
-        unit_data = dev_data[unit_array == unit]
-        unit_target = Y_dev[unit_array == unit]
+        unit_ind = (unit_array == unit)
 
-        self.normed_data = normalize_data(unit_data)
-        self.target = unit_target
+        unit_data = dev_data[unit_ind]
+        unit_data = normalize_data(unit_data)
+        unit_target = Y_dev[unit_ind]
+
+        # remove the transpose() call when using tensorflow
+        # tensorflow uses channels last, but pytorch uses channels first
+        self.source = torch.Tensor(unit_data).transpose(0, 1)
+        self.target = torch.Tensor(unit_target)
+
         self.window = 50
-        self.length = self.normed_data.shape[0] - self.window
+        self.length = self.source.shape[1] - self.window
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, index):
-        data = self.normed_data[index:index+self.window, :]
+        data = self.source[:, index:index+self.window]
         target = self.target[index+self.window]
         return data, target
 
 
 if __name__ == '__main__':
-    filename = '../../data_set/N-CMAPSS_DS02-006.h5'
-    print_keys(filename)
-    ds = DevDataset(filename)
+    fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
+    print_keys(fpath)
+    ds = DevDataset(fpath)
     print(len(ds))
+    a, b = ds[0]
+    print(a.shape)
+    print(b.shape)
