@@ -27,7 +27,7 @@ def load_traindata(params):
 
 class DevDataset(Dataset):
 
-    def __init__(self, filepath, units=(2,)):
+    def __init__(self, filepath, units):
         self.window = 50
 
         with h5py.File(filepath, 'r') as hdf:
@@ -38,8 +38,12 @@ class DevDataset(Dataset):
         unit_array = np.array(A_dev[:, 0], dtype=np.int32)
 
         existing_units = list(np.unique(unit_array))
-        self.units = list(set(units).intersection(set(existing_units)))
-        self.units.sort()
+        if units:
+            units = units[0]
+            self.units = list(set(units).intersection(set(existing_units)))
+            self.units.sort()
+        else:
+            self.units = existing_units
         self.num_units = len(self.units)
 
         dev_data = np.concatenate((W_dev, X_s_dev), axis=1)
@@ -50,7 +54,7 @@ class DevDataset(Dataset):
         self.length_list = []
         self.total_length = 0
 
-        for unit in units:
+        for unit in self.units:
             unit_ind = (unit_array == unit)
 
             unit_data = dev_data[unit_ind]
@@ -105,7 +109,7 @@ class DevDataset(Dataset):
 if __name__ == '__main__':
     fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
     print_keys(fpath)
-    ds = DevDataset(fpath, [2, 5, 10])
+    ds = DevDataset(fpath, [])
     print(ds.units)
     print(ds.num_units)
     print(ds.length_list)
