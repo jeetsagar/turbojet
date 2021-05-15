@@ -7,7 +7,7 @@ import torch.nn as nn
 
 from tqdm import tqdm
 from datetime import datetime
-from torch.optim import Adam
+from torch.optim import Adam, lr_scheduler
 
 
 class AvgMeter:
@@ -86,6 +86,7 @@ class PHMModel:
         self.model = ProgNet()
         if self.trainable:
             self.optim = Adam(self.model.parameters())
+
         self.loss = nn.MSELoss()
 
         self.use_cuda = torch.cuda.is_available() and self.p.cuda
