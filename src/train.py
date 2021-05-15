@@ -10,7 +10,7 @@ def parse_args():
 
     # data parameters
     parser.add_argument('--traindata', default='../../data_set/N-CMAPSS_DS02-006.h5')
-    parser.add_argument('--unit', default=2, type=int)
+    parser.add_argument('--units', action='extend', nargs='*', type=int, default=[])
     parser.add_argument('--save-dir', help='model directory', default='../checkpoints')
     parser.add_argument('--overwrite', help='overwrite old models', action='store_true')
 

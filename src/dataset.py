@@ -2,6 +2,7 @@
 
 import h5py
 import torch
+import bisect
 import numpy as np
 
 from explore import print_keys
@@ -20,16 +21,18 @@ def normalize_data(x):
 
 def load_traindata(params):
     datapath = params.traindata
-    unit = params.unit
+    units = params.units
     batch_size = params.batch_size
-    dataset = DevDataset(datapath, unit)
+    dataset = DevDataset(datapath, units)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
     return train_loader
 
 
 class DevDataset(Dataset):
 
-    def __init__(self, filepath, unit=2):
+    def __init__(self, filepath, units=(2,)):
+        self.window = 50
+
         with h5py.File(filepath, 'r') as hdf:
             W_dev = np.array(hdf.get('W_dev'))
             X_s_dev = np.array(hdf.get('X_s_dev'))
@@ -37,35 +40,67 @@ class DevDataset(Dataset):
             Y_dev = np.array(hdf.get('Y_dev'))
         unit_array = np.array(A_dev[:, 0], dtype=np.int32)
 
+        existing_units = list(np.unique(unit_array))
+        self.units = list(set(units).intersection(set(existing_units)))
+        self.units.sort()
+        self.num_units = len(self.units)
+
         dev_data = np.concatenate((W_dev, X_s_dev), axis=1)
-        unit_ind = (unit_array == unit)
+        dev_data = normalize_data(dev_data)
 
-        unit_data = dev_data[unit_ind]
-        unit_data = normalize_data(unit_data)
-        unit_target = Y_dev[unit_ind]
+        self.data_list = []
+        self.target_list = []
+        self.length_list = []
+        self.total_length = 0
 
-        # remove the transpose() call when using tensorflow
-        # tensorflow uses channels last, but pytorch uses channels first
-        self.source = torch.Tensor(unit_data).transpose(0, 1)
-        self.target = torch.Tensor(unit_target)
+        for unit in units:
+            unit_ind = (unit_array == unit)
 
-        self.window = 50
-        self.length = self.source.shape[1] - self.window
+            unit_data = dev_data[unit_ind]
+            unit_target = Y_dev[unit_ind]
+            unit_target = unit_target[self.window:]
+
+            # remove the transpose() call when using tensorflow
+            # tensorflow uses channels last, but pytorch uses channels first
+            data_tensor = torch.Tensor(unit_data).transpose(0, 1)
+            target_tensor = torch.Tensor(unit_target)
+            self.data_list.append(data_tensor)
+            self.target_list.append(target_tensor)
+
+            target_length = target_tensor.shape[0]
+
+            self.total_length += target_length
+            self.length_list.append(target_length)
+
+        self.total_elem = list(np.cumsum(self.length_list))
+
+    def _get_index(self, n):
+        n = n + 1
+        n = max(1, min(self.total_length, n))
+        i = bisect.bisect_left(self.total_elem, n)
+        if i == 0:
+            return i, n-1
+        m = self.total_elem[i]
+        j = n - m - 1
+        return i, j
 
     def __len__(self):
-        return self.length
+        return self.total_length
 
     def __getitem__(self, index):
-        data = self.source[:, index:index+self.window]
-        target = self.target[index+self.window]
+        i, j = self._get_index(index)
+        data = self.data_list[i][:, j:j+self.window]
+        target = self.target_list[i][j]
         return data, target
 
 
 if __name__ == '__main__':
     fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
     print_keys(fpath)
-    ds = DevDataset(fpath)
+    ds = DevDataset(fpath, [2, 5, 10, 16, 18, 20])
+    print(ds.units)
+    print(ds.num_units)
+    print(ds.length_list)
     print(len(ds))
     a, b = ds[0]
-    print(a.shape)
-    print(b.shape)
+    a, b = ds[len(ds)-1]
