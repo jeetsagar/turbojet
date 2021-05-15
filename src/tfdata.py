@@ -100,9 +100,12 @@ def generate_data(filepath, units):
 def get_dataset(filepath, units):
     return tf.data.Dataset.from_generator(generate_data, args=[filepath, units],
                                           output_signature=(tf.TensorSpec(shape=(50, 18), dtype=tf.float32),
-                                                            tf.TensorSpec(shape=(1, 1), dtype=tf.float32)))
+                                                            tf.TensorSpec(shape=(1, ), dtype=tf.float32)))
 
 
 if __name__ == '__main__':
     fname = '../../data_set/N-CMAPSS_DS02-006.h5'
+    a = DataProvider(fname, [])
+    b, c = a[0]
+    print(b.shape, c.shape)
     tf_ds = get_dataset(fname, [])
