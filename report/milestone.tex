@@ -1,0 +1,161 @@
+\documentclass[a4paper,12pt]{article}
+
+%-------------------------------------------------------------------------------
+
+\usepackage[final]{nips_2017}
+\usepackage[utf8]{inputenc}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+
+\usepackage{microtype}
+
+\usepackage{graphicx}
+\usepackage{tikz}
+
+\usepackage{fullpage}
+
+%-------------------------------------------------------------------------------
+
+% \hypersetup{
+%     colorlinks=true,
+%     linkcolor=red,
+%     filecolor=magenta,
+%     urlcolor=cyan
+% }
+
+\DeclareMathOperator{\rmse}{RMSE}
+\DeclareMathOperator{\nasa}{S}
+
+%-------------------------------------------------------------------------------
+
+\title{Prognostic Health Management for Turbofan Engines Using Deep Learning}
+
+\author{
+Aditya Gulati\\
+\texttt{adgulati@stanford.edu} \\
+\And
+Jeetsagar Ghorai \\
+\texttt{jghorai@stanford.edu} \\
+}
+
+%-------------------------------------------------------------------------------
+\begin{document}
+\maketitle
+%-------------------------------------------------------------------------------
+
+\section{Introduction}
+
+Prognostic Health Management (\emph{PHM}) is a unified framework for
+forecasting system health and reliability. Most systems of interest are
+conmposed of multiple components. Failure of a component in a system can result
+in adverse outcomes such as stoppage of operation, destruction of the system or
+loss of life. In most cases, the failure of a component results from the
+degradation of said component over the course of operation. Prognostic Health
+Management is concerned with forecasting potential failures of systems by
+monitoring the status of the components and the performance of the system. PHM
+is an active area of research in reliability engineering and PHM techniques have
+been applied to a variety of systems such as hydraulic pumps, Lithium ion
+batteries, MOSFETs etc.
+
+In most problems of interest, the data is available in the form of a time series
+of sensor readings. Given this time series data, the aim of PHM is to predict
+the Remaining Useful Life (\emph{RUL}) of the system. Predicting the potential
+failure of a component allows the operator to plan for repair or replacement,
+mitigate downtime and ensure the safety of the equipment and the environment.
+Overestimating RUL leads to an unplanned failure, whereas underestimating RUL
+leads to underutilization of the component.
+
+%-------------------------------------------------------------------------------
+
+\section{Dataset}
+
+The aim of our work is to develop a prognostics model for turbofan aircraft
+engines using deep learning. We have used the
+\href{https://ti.arc.nasa.gov/tech/dash/groups/pcoe/prognostic-data-repository}
+{Turbofan Engine Degradation Simulation Data Set-2} published by the Prognostics
+Center of Excellence at NASA. This dataset contains run-to-failure trajectories
+of a number of turbofan aircraft engines.
+
+The dataset was generated using the Commercial Modular Aero-Propulsion
+System Simulation (CMAPSS) dynamical model, a high fidelity computer model for
+simulation of a realistic large commercial turbofan engine. The dataset
+incorporates real flight conditions recorded on board a commercial jet. The
+atmospheric model and the power manangement system of the model allows the
+simulation to be run under a fairly diverse set of operating conditions.
+
+The published repository contains multiple datasets. One representative dataset,
+\texttt{DS02}, consists of run-to-failure simulation data for nine engines.
+In this dataset, the operating conditions are described using 4 attributes.
+The model outputs the values of 14 measured physical properties and the
+readings from 14 virtual sensors. Together, there are 32 features at every
+time-step. In the dataset, the different engines are referred to as units. The
+units with $u = 2, 5, 10, 16, 18, 20$ are the six training units and the units
+with $u = 11, 14, 15$ are the three test units.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{flight_profile.png}
+    \caption{How the altitude, Mach number, throttle-resolver angle and temperature at fan inlet changes throughout a single flight of unit 20}
+    \label{fig:flight_profile}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{kde.png}
+    \caption{Kernel density estimations of altitude, Mach number, throttle resolver angle and temperature at fan inlet for 6 training and 3 test units. The flight characteristics of units 14 and 15 are different from those of the training units.}
+    \label{fig:unit_kde}
+\end{figure}
+
+%-------------------------------------------------------------------------------
+
+\section{Problem Statement}
+
+The dataset consists of the run-to-failure trajectories of $M+N$ units. There
+are $s$ parameters which denote the operating condition of the aircraft and the
+output of $p$ sensors are monitored at each time-step.
+
+Suppose that the unit $i$ was operated for $m_i$ time-steps. The sensor
+readings at time-step $t$ is denoted by $x_{i}^{(t)} \in \mathbb{R}^{p}$ and the
+operating condition at time-step $t$ is denoted by
+$w_{i}^{(t)} \in \mathbb{R}^{s}$. The RUL at time-step $t$ is denoted by
+$y_{i}^{t} \in \mathbb{R}$.
+
+Suppose that $X_i = \lbrack x_{i}^{(1)}, \ldots, x_{i}^{(m_i)} \rbrack^{T}$,
+$W_i = \lbrack w_{i}^{(1)}, \ldots, w_{i}^{(m_i)} \rbrack^{T}$ and
+$Y_i = \lbrack y_{i}^{1}, \ldots, y_{i}^{m_i} \rbrack^{T}$ Then,
+$\mathcal{D}_{train} = \{W_i, X_i, Y_i\}_{i=1}^{N}$ constitutes the training
+dataset and $\mathcal{D}_{test} = \{W_i, X_i, Y_i\}_{i=1}^{M}$ constitutes the
+test dataset.
+
+The aim of our project is to use $\mathcal{D}_{train}$ to train a deep learning
+model $\mathcal{G}$ that predicts $\hat{Y}$, the RUL of the units in the
+test dataset and minimizes some loss function $L$.
+
+Suppose that the test unit $j$ is run for $m'_{j}$ time-steps and
+$m = \sum_{j=1}^{M} m'_{j}$. Suppose that $\Delta^{(j)}$ is the difference
+between the true RUL and the predicted RUL at time-step $j$, i.e.,
+$\Delta^{(j)} = y^{(j)} - \hat{y}^{(j)}$. We have used two loss functions, the
+root-mean-square error (RMSE) and NASA's scoring functions $\nasa$. These two
+functions are defined as follows.
+
+\[ \rmse = \sqrt{\frac{1}{m}\sum_{j=1}^{m}(\Delta^{(j)})^2} \]
+\[ \nasa = \sum_{j=1}^{m}\alpha_{j}|\Delta^{(j)}| \mbox{ where, } \alpha_{j} = 
+\left\{ \begin{array}{ll}
+\frac{1}{13} & \mbox{ if } \Delta^{(j)} \geq 0 \\
+\frac{1}{10} & \mbox{ if } \Delta^{(j)} < 0 \end{array} \right.\]
+
+The coefficient $\alpha_{j}$ in NASA's scoring function is designed to
+penalize over-estimation more than under-estimation.
+
+%-------------------------------------------------------------------------------
+
+
+%-------------------------------------------------------------------------------
+\end{document}

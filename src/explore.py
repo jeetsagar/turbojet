@@ -57,3 +57,8 @@ def get_valid_dataset(filename, unit=2):
     dev_data = np.concatenate((W_dev, X_s_dev, Y_dev), axis=1)
     unit_data = dev_data[unit_array == unit]
     return unit_data
+
+
+if __name__ == '__main__':
+    fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
+    print_keys(fpath)
