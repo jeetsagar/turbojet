@@ -1,7 +1,10 @@
 #!python3
 
+"""functions for exploring the data"""
+
 import h5py
 import numpy as np
+
 
 def print_keys(filename):
     with h5py.File(filename, 'r') as hdf:
@@ -24,6 +27,7 @@ def print_keys(filename):
     test_hist = np.histogram(test_units, test_unique)
     print('dev: ', dev_hist[1], dev_hist[0])
     print('test: ', test_hist[1], test_hist[0])
+
 
 def check_dev_data(filename):
     with h5py.File(filename, 'r') as hdf:

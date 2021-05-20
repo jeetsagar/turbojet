@@ -1,5 +1,7 @@
 #!python3
 
+"""plots for the milestone report"""
+
 import h5py
 import numpy as np
 import pandas as pd
@@ -8,52 +10,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from matplotlib import gridspec
-
-filename = '../../data_set/N-CMAPSS_DS02-006.h5'
-
-with h5py.File(filename, 'r') as hdf:
-    # Development set
-    W_dev = np.array(hdf.get('W_dev'))  # W
-    X_s_dev = np.array(hdf.get('X_s_dev'))  # X_s
-    X_v_dev = np.array(hdf.get('X_v_dev'))  # X_v
-    T_dev = np.array(hdf.get('T_dev'))  # T
-    Y_dev = np.array(hdf.get('Y_dev'))  # RUL
-    A_dev = np.array(hdf.get('A_dev'))  # Auxiliary
-
-    # Test set
-    W_test = np.array(hdf.get('W_test'))  # W
-    X_s_test = np.array(hdf.get('X_s_test'))  # X_s
-    X_v_test = np.array(hdf.get('X_v_test'))  # X_v
-    T_test = np.array(hdf.get('T_test'))  # T
-    Y_test = np.array(hdf.get('Y_test'))  # RUL
-    A_test = np.array(hdf.get('A_test'))  # Auxiliary
-
-    # Varnams
-    W_var = np.array(hdf.get('W_var'))
-    X_s_var = np.array(hdf.get('X_s_var'))
-    X_v_var = np.array(hdf.get('X_v_var'))
-    T_var = np.array(hdf.get('T_var'))
-    A_var = np.array(hdf.get('A_var'))
-
-    # from np.array to list dtype U4/U5
-    W_var = list(np.array(W_var, dtype='U20'))
-    X_s_var = list(np.array(X_s_var, dtype='U20'))
-    X_v_var = list(np.array(X_v_var, dtype='U20'))
-    T_var = list(np.array(T_var, dtype='U20'))
-    A_var = list(np.array(A_var, dtype='U20'))
-
-W = np.concatenate((W_dev, W_test), axis=0)
-X_s = np.concatenate((X_s_dev, X_s_test), axis=0)
-X_v = np.concatenate((X_v_dev, X_v_test), axis=0)
-T = np.concatenate((T_dev, T_test), axis=0)
-Y = np.concatenate((Y_dev, Y_test), axis=0)
-A = np.concatenate((A_dev, A_test), axis=0)
-
-print ("W shape: " + str(W.shape))
-print ("X_s shape: " + str(X_s.shape))
-print ("X_v shape: " + str(X_v.shape))
-print ("T shape: " + str(T.shape))
-print ("A shape: " + str(A.shape))
 
 
 def plot_df_single_color(data, variables, labels, size=12, labelsize=17, name=None):
@@ -80,7 +36,7 @@ def plot_df_single_color(data, variables, labels, size=12, labelsize=17, name=No
     plt.close()
 
 
-def plot_df_color_per_unit(data, variables, labels, size=(16,9), labelsize=17, option='Time', name=None):
+def plot_df_color_per_unit(data, variables, labels, size=(16, 9), labelsize=17, option='Time', name=None):
     """
     """
     plt.clf()
@@ -171,25 +127,69 @@ def plot_kde(leg, variables, labels, size, units, df_W, df_A, labelsize=17, name
     plt.show()
     plt.close()
 
-df_A = pd.DataFrame(data=A, columns=A_var)
-df_W = pd.DataFrame(data=W, columns=W_var)
-df_W['unit'] = df_A['unit'].values
-
-df_W_u = df_W.loc[(df_A.unit == 20) & (df_A.cycle == 1)]
-df_W_u.reset_index(inplace=True, drop=True)
-
-labels = ['Altitude [ft]', 'Mach Number [-]', 'Throttle Resolver Angle [%]', 'Temperature at fan inlet (T2) [°R]']
-plot_df_color_per_unit(df_W_u, W_var , labels, size=(24,6), labelsize=19, name='flight_profile.png')
-
-variables = ['alt', 'Mach', 'TRA', 'T2']
-labels = ['Altitude [ft]', 'Mach Number [-]', 'Throttle Resolver Angle [%]', 'Temperature at fan inlet [°R]']
-size = (24,6)
-
-units = list(np.unique(df_A['unit']))
-leg = ['Unit ' + str(int(u)) for u in units]
-
-# plot_kde(leg, variables, labels, size, units, df_W, df_A, labelsize=19, name='kde.png')
 
 if __name__ == '__main__':
-    pass
+    filename = '../../data_set/N-CMAPSS_DS02-006.h5'
 
+    with h5py.File(filename, 'r') as hdf:
+        # Development set
+        W_dev = np.array(hdf.get('W_dev'))  # W
+        X_s_dev = np.array(hdf.get('X_s_dev'))  # X_s
+        X_v_dev = np.array(hdf.get('X_v_dev'))  # X_v
+        T_dev = np.array(hdf.get('T_dev'))  # T
+        Y_dev = np.array(hdf.get('Y_dev'))  # RUL
+        A_dev = np.array(hdf.get('A_dev'))  # Auxiliary
+
+        # Test set
+        W_test = np.array(hdf.get('W_test'))  # W
+        X_s_test = np.array(hdf.get('X_s_test'))  # X_s
+        X_v_test = np.array(hdf.get('X_v_test'))  # X_v
+        T_test = np.array(hdf.get('T_test'))  # T
+        Y_test = np.array(hdf.get('Y_test'))  # RUL
+        A_test = np.array(hdf.get('A_test'))  # Auxiliary
+
+        # Varnams
+        W_var = np.array(hdf.get('W_var'))
+        X_s_var = np.array(hdf.get('X_s_var'))
+        X_v_var = np.array(hdf.get('X_v_var'))
+        T_var = np.array(hdf.get('T_var'))
+        A_var = np.array(hdf.get('A_var'))
+
+        # from np.array to list dtype U4/U5
+        W_var = list(np.array(W_var, dtype='U20'))
+        X_s_var = list(np.array(X_s_var, dtype='U20'))
+        X_v_var = list(np.array(X_v_var, dtype='U20'))
+        T_var = list(np.array(T_var, dtype='U20'))
+        A_var = list(np.array(A_var, dtype='U20'))
+
+    W = np.concatenate((W_dev, W_test), axis=0)
+    X_s = np.concatenate((X_s_dev, X_s_test), axis=0)
+    X_v = np.concatenate((X_v_dev, X_v_test), axis=0)
+    T = np.concatenate((T_dev, T_test), axis=0)
+    Y = np.concatenate((Y_dev, Y_test), axis=0)
+    A = np.concatenate((A_dev, A_test), axis=0)
+
+    print("W shape: " + str(W.shape))
+    print("X_s shape: " + str(X_s.shape))
+    print("X_v shape: " + str(X_v.shape))
+    print("T shape: " + str(T.shape))
+    print("A shape: " + str(A.shape))
+
+    df_A = pd.DataFrame(data=A, columns=A_var)
+    df_W = pd.DataFrame(data=W, columns=W_var)
+    df_W['unit'] = df_A['unit'].values
+
+    df_W_u = df_W.loc[(df_A.unit == 20) & (df_A.cycle == 1)]
+    df_W_u.reset_index(inplace=True, drop=True)
+
+    labels = ['Altitude [ft]', 'Mach Number [-]', 'Throttle Resolver Angle [%]', 'Temperature at fan inlet (T2) [°R]']
+    plot_df_color_per_unit(df_W_u, W_var, labels, size=(24, 6), labelsize=19, name='flight_profile.png')
+
+    variables = ['alt', 'Mach', 'TRA', 'T2']
+    labels = ['Altitude [ft]', 'Mach Number [-]', 'Throttle Resolver Angle [%]', 'Temperature at fan inlet [°R]']
+    size = (24, 6)
+
+    units = list(np.unique(df_A['unit']))
+    leg = ['Unit ' + str(int(u)) for u in units]
+
+    plot_kde(leg, variables, labels, size, units, df_W, df_A, labelsize=19, name='kde.png')

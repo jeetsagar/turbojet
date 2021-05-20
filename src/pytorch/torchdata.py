@@ -1,5 +1,7 @@
 #!python3
 
+"""preparing the dataset for pytorch"""
+
 import h5py
 import torch
 import bisect
