@@ -1,6 +1,8 @@
 #!python3
 
-from model import PHMModel
+"""training the model in pytorch"""
+
+from torchmodel import PHMModel
 from torchdata import load_traindata
 from argparse import ArgumentParser
 
@@ -25,6 +27,7 @@ def parse_args():
     parser.add_argument('--writeinfo', action='store_true')
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     params = parse_args()

@@ -1,2 +1,5 @@
 # turbojet
-PHM on turbojet data
+
+```
+python tftrain.py
+```

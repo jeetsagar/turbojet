@@ -11,6 +11,7 @@ from torch.optim import Adam, lr_scheduler
 
 
 class AvgMeter:
+    """class for tracking the average of loss"""
 
     def __init__(self):
         self.count = 0
@@ -32,17 +33,20 @@ class AvgMeter:
 
 
 def _create_parent(fname):
+    """ensure that the parent directory is created"""
     fpath = pathlib.Path(fname)
     dirpath = fpath.parent
     dirpath.mkdir(parents=True, exist_ok=True)
 
 
 def _create_dir(dirname):
+    """given a path to a directory, ensure that it is created"""
     dirpath = pathlib.Path(dirname)
     dirpath.mkdir(parents=True, exist_ok=True)
 
 
 class ProgNet(nn.Module):
+    """the neural network"""
 
     def __init__(self):
 
@@ -75,6 +79,7 @@ class ProgNet(nn.Module):
 
 
 class PHMModel:
+    """the model along with optimizer and methods for training"""
 
     def __init__(self, params, trainable):
         self.p = params
@@ -130,6 +135,7 @@ class PHMModel:
         return None
 
     def _on_epoch_end(self, stats, train_loss, epoch):
+        """print info at the end of the epoch"""
         print(f'Train loss {train_loss:.6f} | ')
 
         # save checkpoint

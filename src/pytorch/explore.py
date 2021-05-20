@@ -1,7 +1,10 @@
 #!python3
 
+"""functions for exploring the data"""
+
 import h5py
 import numpy as np
+
 
 def print_keys(filename):
     with h5py.File(filename, 'r') as hdf:
@@ -24,6 +27,7 @@ def print_keys(filename):
     test_hist = np.histogram(test_units, test_unique)
     print('dev: ', dev_hist[1], dev_hist[0])
     print('test: ', test_hist[1], test_hist[0])
+
 
 def check_dev_data(filename):
     with h5py.File(filename, 'r') as hdf:
@@ -57,3 +61,8 @@ def get_valid_dataset(filename, unit=2):
     dev_data = np.concatenate((W_dev, X_s_dev, Y_dev), axis=1)
     unit_data = dev_data[unit_array == unit]
     return unit_data
+
+
+if __name__ == '__main__':
+    fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
+    print_keys(fpath)

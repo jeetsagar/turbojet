@@ -1,5 +1,7 @@
 #!python3
 
+"""preparing the dataset for pytorch"""
+
 import h5py
 import torch
 import bisect
@@ -104,6 +106,8 @@ if __name__ == '__main__':
     fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
     print_keys(fpath)
     ds = DevDataset(fpath, [])
+    a, b = ds[0]
+    print(a.shape, b.shape)
     print(ds.units)
     print(ds.num_units)
     print(ds.length_list)
