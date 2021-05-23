@@ -11,10 +11,11 @@ def parse_args():
     parser = ArgumentParser(description='train noise2noise model')
 
     # data parameters
-    parser.add_argument('--traindata', default='../../data_set/N-CMAPSS_DS02-006.h5')
+    parser.add_argument('--traindata', default='../../../data_set/N-CMAPSS_DS02-006.h5')
     parser.add_argument('--units', action='append', nargs='*', type=int, default=[])
-    parser.add_argument('--save-dir', help='model directory', default='../checkpoints')
+    parser.add_argument('--save-dir', help='model directory', default='../../checkpoints')
     parser.add_argument('--overwrite', help='overwrite old models', action='store_true')
+    parser.add_argument('--sequence', help='use sequence model', action='store_true')
 
     # training hyperparameters
     parser.add_argument('-b', '--batch-size', default=128, type=int)
