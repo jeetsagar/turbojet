@@ -3,7 +3,15 @@
 """functions for exploring the data"""
 
 import h5py
+import pathlib
 import numpy as np
+
+
+def get_filenames(parent='../../../data_set/'):
+    parentdir = pathlib.Path(parent)
+    flist = list(parentdir.glob('*.h5'))
+    flist.sort()
+    return flist
 
 
 def print_keys(filename):
@@ -14,7 +22,7 @@ def print_keys(filename):
         for k in varkeys:
             vararr = np.array(hdf.get(k))
             varlist = list(np.array(vararr, dtype='U20'))
-            print(k, varlist)
+            print(k, varlist, len(varlist))
 
         A_dev = np.array(hdf.get('A_dev'))
         A_test = np.array(hdf.get('A_test'))
@@ -64,5 +72,11 @@ def get_valid_dataset(filename, unit=2):
 
 
 if __name__ == '__main__':
-    fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
+    data_dir = '../../../data_set/'
+    flist = get_filenames(data_dir)
+    fpath = np.random.choice(flist)
+    print(fpath.name)
     print_keys(fpath)
+    for fpath in flist[:-1]:
+        print(fpath.name)
+        print_keys(fpath)

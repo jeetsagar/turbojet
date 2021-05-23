@@ -43,10 +43,24 @@ phm_model.compile(loss=tf.losses.MeanSquaredError(), optimizer=tf.optimizers.Ada
 # Uncomment to resume training from previous checkpoint
 # phm_model.load_weights("./Model_inKalmanFirst.h5")
 
-
 filepath = "./Model_inKalmanFirst.h5"
 # Save checkpoint
 checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath, monitor='loss', verbos=0, save_best_only=False,
                                                 save_freq='epoch')
 # Train
 phm_model.fit(tf_ds, epochs=100, callbacks=[checkpoint])
+
+seq_model = tf.keras.Sequential([
+    layers.Conv1D(filters=10, kernel_size=10, padding="same", activation="relu", input_shape=(1, 50, 49)),
+    layers.Conv1D(filters=10, kernel_size=10, padding="same", activation="relu"),
+    layers.Conv1D(filters=1, kernel_size=10, padding="same", activation="relu"),
+    layers.Flatten(),
+    layers.LSTM(50),
+    layers.Dense(1)
+])
+
+# Compile model
+seq_model.compile(loss=tf.losses.MeanSquaredError(), optimizer=tf.optimizers.Adam(learning_rate=0.0001, amsgrad=True))
+
+# Train
+seq_model.fit(tf_ds, epochs=100, callbacks=[checkpoint])

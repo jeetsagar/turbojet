@@ -103,7 +103,7 @@ class DevDataset(Dataset):
 
 
 if __name__ == '__main__':
-    fpath = '../../data_set/N-CMAPSS_DS02-006.h5'
+    fpath = '../../../data_set/N-CMAPSS_DS02-006.h5'
     print_keys(fpath)
     ds = DevDataset(fpath, [])
     a, b = ds[0]

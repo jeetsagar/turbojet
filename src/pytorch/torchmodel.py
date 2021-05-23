@@ -63,8 +63,39 @@ class ProgNet(nn.Module):
             nn.Flatten(),
             nn.Linear(50, 50),
             nn.ReLU(inplace=True),
-            nn.Linear(50, 1),
-            nn.ReLU(inplace=True)
+            nn.Linear(50, 1)
+        )
+
+    def _init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv1d):
+                nn.init.kaiming_normal(m.weight.data)
+                m.bias.data.zero_()
+        return None
+
+    def forward(self, x):
+        return self._block1(x)
+
+
+class SeqNet(nn.Module):
+    """the neural network"""
+
+    def __init__(self):
+
+        super(SeqNet, self).__init__()
+
+        # changing kernel_size to odd number to use same convolution
+        self._block1 = nn.Sequential(
+            nn.Conv1d(18, 20, (9,), padding=(4,)),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(20, 20, (9,), padding=(4,)),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(20, 1, (9,), padding=(4,)),
+            nn.ReLU(inplace=True),
+            nn.Flatten(),
+            nn.LSTM(input_size=50, hidden_size=50, batch_first=True),
+            nn.ReLU(inplace=True),
+            nn.Linear(50, 1)
         )
 
     def _init_weights(self):
@@ -88,9 +119,18 @@ class PHMModel:
 
     def _compile(self):
         print('compiling PHM model...')
-        self.model = ProgNet()
+
+        if self.p.sequence:
+            self.model = ProgNet()
+        else:
+            self.model = SeqNet()
+
         if self.trainable:
+            # the optimizer
             self.optim = Adam(self.model.parameters())
+
+            # learning rate adjustment
+            self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optim, patience=2, factor=0.5, verbose=True)
 
         self.loss = nn.MSELoss()
 
