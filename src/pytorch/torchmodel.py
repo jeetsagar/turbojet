@@ -192,6 +192,29 @@ class PHMModel:
     def _on_training_end(self):
         self.write_model(name='final_model')
 
+    def test(self, test_loader):
+        self.model.train(False)
+
+        test_start = datetime.now()
+
+        # testing loss tracker
+        loss_meter = AvgMeter()
+
+        for source, target in tqdm(test_loader, desc='TEST'):
+            if self.use_cuda:
+                source = source.cuda
+                target = target.cuda
+
+            predicted = self.model(source.float())
+            loss = self.loss(predicted, target.float())
+
+            # update the loss tracker
+            loss_meter.update(loss)
+
+        print(f'Test loss = {loss_meter.avg:.6f}')
+        total_elapsed = str(datetime.now() - test_start)
+        print(f'testing done, elapsed time: {total_elapsed}')
+
     def train(self, train_loader):
         self.model.train(True)
         self._print_params()
