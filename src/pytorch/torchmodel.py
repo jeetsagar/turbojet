@@ -86,9 +86,10 @@ class SeqNet(nn.Module):
 
         # changing kernel_size to odd number to use same convolution
         self._block1 = nn.Sequential(
-            nn.LSTM(input_size=18, hidden_size=40, batch_first=True),
+            nn.LSTM(input_size=18, hidden_size=2, batch_first=True),
             nn.ReLU(inplace=True),
-            nn.Linear(40, 1)
+            nn.Flatten(),
+            nn.Linear(36, 1)
         )
 
     def _init_weights(self):
@@ -198,11 +199,11 @@ class PHMModel:
         outlist = []
         for source, target in tqdm(test_loader, desc='TEST'):
             if self.use_cuda:
-                source = source.cuda
-                target = target.cuda
+                source = source.cuda()
+                target = target.cuda()
 
-            predicted = self.model(source.float())
-            loss = self.loss(predicted, target.float())
+            predicted = self.model(source)
+            loss = self.loss(predicted, target)
 
             # update the loss tracker
             loss_meter.update(loss)

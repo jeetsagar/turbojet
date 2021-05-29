@@ -4,10 +4,11 @@ __pycache__/
 *$py.class
 
 # ignore checkpoints
-checkpoints/
+checkpoints
 
 # ignore output
-outputs/
+outputs
+*.npz
 
 # C extensions
 *.so
