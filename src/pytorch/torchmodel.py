@@ -86,16 +86,9 @@ class SeqNet(nn.Module):
 
         # changing kernel_size to odd number to use same convolution
         self._block1 = nn.Sequential(
-            nn.Conv1d(18, 20, (9,), padding=(4,)),
+            nn.LSTM(input_size=18, hidden_size=40, batch_first=True),
             nn.ReLU(inplace=True),
-            nn.Conv1d(20, 20, (9,), padding=(4,)),
-            nn.ReLU(inplace=True),
-            nn.Conv1d(20, 1, (9,), padding=(4,)),
-            nn.ReLU(inplace=True),
-            nn.Flatten(),
-            nn.LSTM(input_size=50, hidden_size=50, batch_first=True),
-            nn.ReLU(inplace=True),
-            nn.Linear(50, 1)
+            nn.Linear(40, 1)
         )
 
     def _init_weights(self):

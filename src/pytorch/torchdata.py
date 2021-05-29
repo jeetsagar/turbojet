@@ -23,13 +23,13 @@ def normalize_data(x):
 
 def load_traindata(params):
     dataset = UnitDataset(params.traindata, params.units, mode='dev')
-    train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=True)
+    train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=False)
     return train_loader
 
 
 def load_testdata(params):
     dataset = UnitDataset(params.testdata, params.units, mode='test')
-    train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=True)
+    train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=False)
     return train_loader
 
 
