@@ -18,6 +18,8 @@ def parse_args():
 
     parser.add_argument('--load-file', help='model location', default='../../checkpoints/ProgNet.pt')
 
+    parser.add_argument('--features-last', help='features in data', default=False, action='store_true')
+
     # training hyperparameters
     parser.add_argument('-b', '--batch-size', help='batch size', default=128, type=int)
     parser.add_argument('-e', '--num-epochs', help='number of epochs', default=20, type=int)
