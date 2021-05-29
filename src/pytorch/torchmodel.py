@@ -84,13 +84,10 @@ class SeqNet(nn.Module):
 
         super(SeqNet, self).__init__()
 
-        # changing kernel_size to odd number to use same convolution
-        self._block1 = nn.Sequential(
-            nn.LSTM(input_size=18, hidden_size=2, batch_first=True),
-            nn.ReLU(inplace=True),
-            nn.Flatten(),
-            nn.Linear(36, 1)
-        )
+        self._lstm = nn.LSTM(input_size=18, hidden_size=2, batch_first=True)
+        self._relu = nn.ReLU(inplace=True)
+        self._flatten = nn.Flatten()
+        self._linear = nn.Linear(100, 1)
 
     def _init_weights(self):
         for m in self.modules():
@@ -100,7 +97,10 @@ class SeqNet(nn.Module):
         return None
 
     def forward(self, x):
-        return self._block1(x)
+        x, _ = self._lstm(x)
+        x = self._relu(x)
+        x = self._flatten(x)
+        return self._linear(x)
 
 
 class PHMModel:

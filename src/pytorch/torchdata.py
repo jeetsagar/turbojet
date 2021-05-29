@@ -22,27 +22,28 @@ def normalize_data(x):
 
 
 def load_traindata(params):
-    dataset = UnitDataset(params.traindata, params.units, mode='dev')
+    dataset = UnitDataset(params.traindata, params.units, 'dev', params.features_last)
     train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=False)
     return train_loader
 
 
 def load_testdata(params):
-    dataset = UnitDataset(params.testdata, params.units, mode='test')
+    dataset = UnitDataset(params.testdata, params.units, 'test', params.features_last)
     test_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=False)
     return test_loader
 
 
 class UnitDataset(Dataset):
 
-    def __init__(self, filepath, units, mode='dev'):
+    def __init__(self, filepath, units, suffix='dev', features_last=False):
         self.window = 50
+        self.features_last = features_last
 
         with h5py.File(filepath, 'r') as hdf:
-            W_array = np.array(hdf.get(f'W_{mode}'))
-            X_s_array = np.array(hdf.get(f'X_s_{mode}'))
-            A_array = np.array(hdf.get(f'A_{mode}'))
-            Y_array = np.array(hdf.get(f'Y_{mode}'))
+            W_array = np.array(hdf.get(f'W_{suffix}'))
+            X_s_array = np.array(hdf.get(f'X_s_{suffix}'))
+            A_array = np.array(hdf.get(f'A_{suffix}'))
+            Y_array = np.array(hdf.get(f'Y_{suffix}'))
         unit_array = np.array(A_array[:, 0], dtype=np.int32)
 
         existing_units = list(np.unique(unit_array))
@@ -75,9 +76,14 @@ class UnitDataset(Dataset):
 
             # remove the transpose() call when using tensorflow
             # tensorflow uses channels last, but pytorch uses channels first
-            data_tensor = torch.Tensor(unit_data).transpose(0, 1)
-            target_tensor = torch.Tensor(unit_target)
+            # by default features/channels occupy the last axis, the transpose call moves the features/channels first
+            if self.features_last:
+                data_tensor = torch.Tensor(unit_data)
+            else:
+                data_tensor = torch.Tensor(unit_data).transpose(0, 1)
             self.data_list.append(data_tensor)
+
+            target_tensor = torch.Tensor(unit_target)
             self.target_list.append(target_tensor)
 
             target_length = target_tensor.shape[0]
@@ -103,23 +109,27 @@ class UnitDataset(Dataset):
 
     def __getitem__(self, index):
         i, j = self._get_index(index)
-        data = self.data_list[i][:, j:j+self.window]
+        if self.features_last:
+            data = self.data_list[i][j:j+self.window, :]
+        else:
+            data = self.data_list[i][:, j:j + self.window]
         target = self.target_list[i][j]
         return data, target
 
 
 if __name__ == '__main__':
     fpath = '../../../data_set/N-CMAPSS_DS02-006.h5'
-    # print_keys(fpath)
-    # ds = UnitDataset(fpath, [])
+
+    ds = UnitDataset(fpath, [[14]], 'test', False)
+
     # a, b = ds[0]
     # print(a.shape, b.shape)
+
     # print(ds.units)
     # print(ds.num_units)
     # print(ds.length_list)
     # print(len(ds))
 
-    ds = UnitDataset(fpath, [[14]], mode='test')
     td = DataLoader(ds, batch_size=4, shuffle=False, pin_memory=False)
 
     for i, (j, k) in enumerate(td):
