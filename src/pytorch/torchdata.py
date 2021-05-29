@@ -22,22 +22,28 @@ def normalize_data(x):
 
 
 def load_traindata(params):
-    dataset = DevDataset(params.traindata, params.units)
+    dataset = UnitDataset(params.traindata, params.units, mode='dev')
     train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=True)
     return train_loader
 
 
-class DevDataset(Dataset):
+def load_testdata(params):
+    dataset = UnitDataset(params.testdata, params.units, mode='test')
+    train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=True)
+    return train_loader
 
-    def __init__(self, filepath, units):
+
+class UnitDataset(Dataset):
+
+    def __init__(self, filepath, units, mode='dev'):
         self.window = 50
 
         with h5py.File(filepath, 'r') as hdf:
-            W_dev = np.array(hdf.get('W_dev'))
-            X_s_dev = np.array(hdf.get('X_s_dev'))
-            A_dev = np.array(hdf.get('A_dev'))
-            Y_dev = np.array(hdf.get('Y_dev'))
-        unit_array = np.array(A_dev[:, 0], dtype=np.int32)
+            W_array = np.array(hdf.get(f'W_{mode}'))
+            X_s_array = np.array(hdf.get(f'X_s_{mode}'))
+            A_array = np.array(hdf.get(f'A_{mode}'))
+            Y_array = np.array(hdf.get(f'Y_{mode}'))
+        unit_array = np.array(A_array[:, 0], dtype=np.int32)
 
         existing_units = list(np.unique(unit_array))
         if units:
@@ -48,7 +54,7 @@ class DevDataset(Dataset):
             self.units = existing_units
         self.num_units = len(self.units)
 
-        dev_data = np.concatenate((W_dev, X_s_dev), axis=1)
+        dev_data = np.concatenate((W_array, X_s_array), axis=1)
         dev_data = normalize_data(dev_data)
 
         self.data_list = []
@@ -60,7 +66,7 @@ class DevDataset(Dataset):
             unit_ind = (unit_array == unit)
 
             unit_data = dev_data[unit_ind]
-            unit_target = Y_dev[unit_ind]
+            unit_target = Y_array[unit_ind]
             unit_target = unit_target[self.window:]
 
             # using a subset of the data for testing
@@ -105,7 +111,7 @@ class DevDataset(Dataset):
 if __name__ == '__main__':
     fpath = '../../../data_set/N-CMAPSS_DS02-006.h5'
     print_keys(fpath)
-    ds = DevDataset(fpath, [])
+    ds = UnitDataset(fpath, [])
     a, b = ds[0]
     print(a.shape, b.shape)
     print(ds.units)
