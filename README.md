@@ -56,3 +56,13 @@ optional arguments:
                         batch size
   --cuda                use cuda
 ```
+
+The output of the model will be written to the file specified by the argument
+`--output`. This file can be loaded as follows.
+
+```python
+import numpy as np
+
+data = np.load('./output.npz')
+predicted = data['output']
+```
