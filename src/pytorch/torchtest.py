@@ -13,6 +13,7 @@ def parse_args():
     # data parameters
     parser.add_argument('--testdata', help='path to test data', default='../../../data_set/N-CMAPSS_DS02-006.h5')
     parser.add_argument('--load-file', help='model location', default='../../checkpoints/ProgNet.pt')
+    parser.add_argument('--output', help='model output', default='../../output/output.npz')
 
     # model options
     parser.add_argument('--units', help='units to use', action='append', nargs='*', type=int, default=[])

@@ -132,8 +132,7 @@ class PHMModel:
         self.use_cuda = torch.cuda.is_available() and self.p.cuda
         if self.use_cuda:
             self.model = self.model.cuda()
-            if self.trainable:
-                self.loss = self.loss.cuda()
+            self.loss = self.loss.cuda()
         self.p.cuda = self.use_cuda
 
         print('done compiling PHM model')
@@ -196,6 +195,7 @@ class PHMModel:
         # testing loss tracker
         loss_meter = AvgMeter()
 
+        outlist = []
         for source, target in tqdm(test_loader, desc='TEST'):
             if self.use_cuda:
                 source = source.cuda
@@ -206,6 +206,15 @@ class PHMModel:
 
             # update the loss tracker
             loss_meter.update(loss)
+
+            pred_array = predicted.detach().cpu().numpy()
+            outlist.append(pred_array)
+
+        print(f'writing output to {self.p.output}')
+        output = np.concatenate(outlist).astype(np.float32)
+        _create_parent(self.p.output)
+        with open(self.p.output, 'wb') as outfile:
+            np.savez(outfile, output=output)
 
         print(f'Test loss = {loss_meter.avg:.6f}')
         total_elapsed = str(datetime.now() - test_start)
