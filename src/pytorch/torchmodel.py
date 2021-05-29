@@ -11,7 +11,7 @@ from torch.optim import Adam, lr_scheduler
 
 
 class AvgMeter:
-    """class for tracking the average of loss"""
+    """class for tracking the average loss"""
 
     def __init__(self):
         self.count = 0
@@ -121,16 +121,18 @@ class PHMModel:
         print('compiling PHM model...')
 
         if self.p.sequence:
-            self.model = ProgNet()
-        else:
             self.model = SeqNet()
+            self.modelname = 'SeqNet'
+        else:
+            self.model = ProgNet()
+            self.modelname = 'ProgNet'
 
         if self.trainable:
             # the optimizer
             self.optim = Adam(self.model.parameters())
 
             # learning rate adjustment
-            self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optim, patience=2, factor=0.5, verbose=True)
+            self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optim, patience=4, factor=0.5, verbose=True)
 
         self.loss = nn.MSELoss()
 
@@ -140,6 +142,7 @@ class PHMModel:
             if self.trainable:
                 self.loss = self.loss.cuda()
         self.p.cuda = self.use_cuda
+
         print('done compiling PHM model')
 
     def _print_params(self):
@@ -150,7 +153,7 @@ class PHMModel:
             print(f'{k} = {str(v)}')
         print('\n')
 
-    def write_model(self, model=None, name='PHM'):
+    def write_model(self, model=None, name='model'):
         """write a model to disk"""
         if model is None:
             model = self.model
@@ -160,7 +163,7 @@ class PHMModel:
 
     def write_stats(self, stats):
         """save stats as csv"""
-        fpath = f'{self.p.save_dir}/n2n-stats.csv'
+        fpath = f'{self.p.save_dir}/stats.csv'
         array = np.array(stats)
         fmt = '%d,%f'
         header = 'epoch,train_loss'
@@ -181,16 +184,16 @@ class PHMModel:
         # save checkpoint
         stats.append([epoch + 1, train_loss])
         if self.p.overwrite:
-            name = 'PHM'
+            name = f'{self.modelname}'
         else:
-            name = f'PHM_{epoch + 1}_{train_loss:.6f}'
+            name = f'{self.modelname}_{epoch + 1}_{train_loss:.6f}'
         print(f'saving checkpoint to {name}\n')
 
         self.write_model(name=name)
         self.write_stats(stats)
 
     def _on_training_end(self):
-        self.write_model(name='final_model')
+        self.write_model(name=f'final_{self.modelname}')
 
     def test(self, test_loader):
         self.model.train(False)

@@ -31,10 +31,14 @@ def print_keys(filename):
     test_units = np.array(A_test[:, 0], dtype=np.int32)
     dev_unique = np.unique(dev_units)
     test_unique = np.unique(test_units)
-    dev_hist = np.histogram(dev_units, dev_unique)
-    test_hist = np.histogram(test_units, test_unique)
-    print('dev: ', dev_hist[1], dev_hist[0])
-    print('test: ', test_hist[1], test_hist[0])
+
+    dev_bins = np.append(dev_unique, dev_unique[-1] + 1)
+    test_bins = np.append(test_unique, test_unique[-1]+1)
+    dev_hist, _ = np.histogram(dev_units, dev_bins)
+    test_hist, _ = np.histogram(test_units, test_bins)
+
+    print('dev: ', dev_unique, dev_hist)
+    print('test: ', test_unique, test_hist)
 
 
 def check_dev_data(filename):
