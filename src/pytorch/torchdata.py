@@ -29,8 +29,8 @@ def load_traindata(params):
 
 def load_testdata(params):
     dataset = UnitDataset(params.testdata, params.units, mode='test')
-    train_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=False)
-    return train_loader
+    test_loader = DataLoader(dataset, batch_size=params.batch_size, shuffle=False, pin_memory=False)
+    return test_loader
 
 
 class UnitDataset(Dataset):
@@ -110,11 +110,22 @@ class UnitDataset(Dataset):
 
 if __name__ == '__main__':
     fpath = '../../../data_set/N-CMAPSS_DS02-006.h5'
-    print_keys(fpath)
-    ds = UnitDataset(fpath, [])
-    a, b = ds[0]
-    print(a.shape, b.shape)
-    print(ds.units)
-    print(ds.num_units)
-    print(ds.length_list)
-    print(len(ds))
+    # print_keys(fpath)
+    # ds = UnitDataset(fpath, [])
+    # a, b = ds[0]
+    # print(a.shape, b.shape)
+    # print(ds.units)
+    # print(ds.num_units)
+    # print(ds.length_list)
+    # print(len(ds))
+
+    ds = UnitDataset(fpath, [[14]], mode='test')
+    td = DataLoader(ds, batch_size=4, shuffle=False, pin_memory=False)
+
+    for i, (j, k) in enumerate(td):
+        if i > 1:
+            break
+        print(j.shape)
+        print(j.dtype)
+        print(k.shape)
+        print(k.dtype)
