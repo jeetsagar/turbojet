@@ -70,11 +70,15 @@ MOSFETs etc.
 
 In most problems of interest, the data is available in the form of a time series
 of sensor readings. Given this time series data, the aim of PHM is to predict
-the Remaining Useful Life (\emph{RUL}) of the system. Predicting the potential
-failure of a component allows the operator to plan for repair or replacement,
-mitigate downtime and ensure the safety of the equipment and the environment.
-Overestimating RUL leads to an unplanned failure, whereas underestimating RUL
-leads to underutilization of the component.
+the Remaining Useful Life (\emph{RUL}) of the system. In industrial systems,
+failure of a single critical component can halt an entire production line until
+the component is replaced. This can result in lost productivity and can disrupt
+supply chains upstream. Predicting the potential failure of a component allows
+the operator to plan for repair or replacement, mitigate downtime and ensure the
+safety of the equipment, the environment and workers. Overestimating RUL leads
+to an unplanned failure, whereas underestimating RUL leads to underutilization
+of the component. In safety critical applications, overestimation poses a higher
+risk. However, severe underestimation is also undesriable.
 
 %-------------------------------------------------------------------------------
 
@@ -154,6 +158,17 @@ over-estimation more than under-estimation.
 %-------------------------------------------------------------------------------
 
 % \pagebreak
+
+
+%-------------------------------------------------------------------------------
+
+\section{LSTM}
+
+Recurrent Neural Networks (\textit{RNN}), perform exceptionally well at
+prediction tasks involving temporal sequences. The dataset under consideration
+consists of time series data of sensor readings. That is why, we decided to
+investigate the potential of RNN networks for predicting the RUL. In our
+experiments, we used LSTM networks instead of RNN.
 
 
 
