@@ -19,7 +19,7 @@ class DataProvider:
 
     def __init__(self, filepath, units, mode):
         self.window = 50
-        if mode==1:
+        if mode == 1:
             with h5py.File(filepath, 'r') as hdf:
                 W_dev = np.array(hdf.get('W_dev'))
                 X_s_dev = np.array(hdf.get('X_s_dev'))
@@ -37,7 +37,7 @@ class DataProvider:
                 Tk_dev = np.array(hdf.get('Tk_test'))
                 A_dev = np.array(hdf.get('A_test'))
                 Y_dev = np.array(hdf.get('Y_test'))
-                
+
         unit_array = np.array(A_dev[:, 0], dtype=np.int32)
 
         existing_units = list(np.unique(unit_array))
@@ -50,10 +50,9 @@ class DataProvider:
         self.num_units = len(self.units)
 
         # dev_data = np.concatenate((W_dev, X_s_dev,X_v_dev,T_dev[:, [-1,-2,-4]]), axis=1)
-        dev_data = np.concatenate((W_dev, X_s_dev, X_sk_dev,X_vk_dev,Tk_dev), axis=1)
+        dev_data = np.concatenate((W_dev, X_s_dev, X_sk_dev, X_vk_dev, Tk_dev), axis=1)
 
         # dev_data = np.concatenate((W_dev, X_s_dev), axis=1)
-
 
         # print(np.shape(dev_data))
         # exit()
@@ -112,16 +111,19 @@ class DataProvider:
         return data, target
 
 
-def generate_data(filepath, units,mode):
-    ds = DataProvider(filepath, units,mode)
+def generate_data(filepath, units, mode):
+    ds = DataProvider(filepath, units, mode)
     for i in range(ds.total_length):
         data, value = ds[i]
         yield data, value
 
 
-def get_dataset(filepath, units,mode):
+def get_dataset(filepath, units, mode):
     # return tf.data.Dataset.from_generator(generate_data, args=[filepath, units],output_signature=(tf.TensorSpec(shape=(1, 50, 18), dtype=tf.float32),tf.TensorSpec(shape=(1, 1), dtype=tf.float32)))
-    return tf.data.Dataset.from_generator(generate_data, args=[filepath,units,mode], output_types=(tf.float32,tf.float32), output_shapes=([1,50,49],[1,]))
+    return tf.data.Dataset.from_generator(generate_data, args=[filepath, units, mode],
+                                          output_types=(tf.float32, tf.float32), output_shapes=([1, 50, 49], [1, ]))
+
+
 # training_dataset = tf.data.Dataset.from_generator(
 #      raw_data_gen, 
 #      args=(1), 
@@ -130,7 +132,7 @@ def get_dataset(filepath, units,mode):
 
 if __name__ == '__main__':
     fname = '../../data_set/N-CMAPSS_DS02-006.h5'
-    a = DataProvider(fname, [],"dev")
+    a = DataProvider(fname, [], "dev")
     b, c = a[0]
     print(b.shape, c.shape)
-    tf_ds = get_dataset(fname, [],"dev")
+    tf_ds = get_dataset(fname, [], "dev")

@@ -1,6 +1,5 @@
 #!python3
 
-
 import h5py
 import bisect
 import numpy as np
@@ -18,45 +17,43 @@ def normalize_data(x):
 
 class DataProvider:
 
-    def __init__(self, filepath, units, augmentPhy, mode):
+    def __init__(self, filepath, units, mode):
         self.window = 50
-
-        if mode == 1:
-            suffix = "dev"
-        else:
-            suffix = "test"
-
-        if augmentPhy:
+        if mode==1:
             with h5py.File(filepath, 'r') as hdf:
-                W_in = np.array(hdf.get("W_" + suffix))
-                X_s_in = np.array(hdf.get("X_s_" + suffix))
-                X_sk_in = np.array(hdf.get("X_sk_" + suffix))
-                X_vk_in = np.array(hdf.get("X_vk_" + suffix))
-                Tk_in = np.array(hdf.get("Tk_" + suffix))
-                A_in = np.array(hdf.get("A_" + suffix))
-                Y_in = np.array(hdf.get("Y_" + suffix))
+                W_dev = np.array(hdf.get('W_dev'))
+                X_s_dev = np.array(hdf.get('X_s_dev'))
+                X_v_dev = np.array(hdf.get('X_v_dev'))
+                T_dev = np.array(hdf.get('T_dev'))
+                A_dev = np.array(hdf.get('A_dev'))
+                Y_dev = np.array(hdf.get('Y_dev'))
         else:
             with h5py.File(filepath, 'r') as hdf:
-                W_in = np.array(hdf.get("W_" + suffix))
-                X_s_in = np.array(hdf.get("X_s_" + suffix))
-                X_v_in = np.array(hdf.get("X_v_" + suffix))
-                T_in = np.array(hdf.get("T_" + suffix))
-                A_in = np.array(hdf.get("A_" + suffix))
-                Y_in = np.array(hdf.get("Y_" + suffix))
-
-        unit_array = np.array(A_in[:, 0], dtype=np.int32)
+                W_dev = np.array(hdf.get('W_test'))
+                X_s_dev = np.array(hdf.get('X_s_test'))
+                X_v_dev = np.array(hdf.get('X_v_test'))
+                T_dev = np.array(hdf.get('T_test'))
+                A_dev = np.array(hdf.get('A_test'))
+                Y_dev = np.array(hdf.get('Y_test'))
+                
+        unit_array = np.array(A_dev[:, 0], dtype=np.int32)
 
         existing_units = list(np.unique(unit_array))
-
-        self.units = existing_units
+        if units:
+            units = units[0]
+            self.units = list(set(units).intersection(set(existing_units)))
+            self.units.sort()
+        else:
+            self.units = existing_units
         self.num_units = len(self.units)
 
-        if augmentPhy:
-            data_in = np.concatenate((W_in, X_s_in, X_sk_in, X_vk_in, Tk_in), axis=1)
-        else:
-            data_in = np.concatenate((W_in, X_s_in, X_v_in, T_in[:, [-1, -2, -4]]), axis=1)
+        dev_data = np.concatenate((W_dev, X_s_dev,X_v_dev,T_dev[:, [-1,-2,-4]]), axis=1)
+        # dev_data = np.concatenate((W_dev, X_s_dev), axis=1)
 
-        data_in = normalize_data(data_in)
+
+        # print(np.shape(dev_data))
+        # exit()
+        dev_data = normalize_data(dev_data)
 
         self.data_list = []
         self.target_list = []
@@ -66,13 +63,16 @@ class DataProvider:
         for unit in self.units:
             unit_ind = (unit_array == unit)
 
-            unit_data = data_in[unit_ind]
-            unit_target = Y_in[unit_ind]
+            unit_data = dev_data[unit_ind]
+            unit_target = Y_dev[unit_ind]
             unit_target = unit_target[self.window:]
+
+            # using a subset of the data for testing
+            # unit_data = unit_data[:1024+self.window]
+            # unit_target = unit_target[:1024]
 
             # remove the transpose() call when using tensorflow
             # tensorflow uses channels last, but pytorch uses channels first
-
             data_tensor = unit_data
             target_tensor = unit_target
             self.data_list.append(data_tensor)
@@ -108,19 +108,25 @@ class DataProvider:
         return data, target
 
 
-def generate_data(filepath, units, augmentPhy, mode):
-    ds = DataProvider(filepath, units, augmentPhy, mode)
+def generate_data(filepath, units,mode):
+    ds = DataProvider(filepath, units,mode)
     for i in range(ds.total_length):
         data, value = ds[i]
         yield data, value
 
 
-def get_dataset(filepath, units, augmentPhy, mode):
+def get_dataset(filepath, units,mode):
     # return tf.data.Dataset.from_generator(generate_data, args=[filepath, units],output_signature=(tf.TensorSpec(shape=(1, 50, 18), dtype=tf.float32),tf.TensorSpec(shape=(1, 1), dtype=tf.float32)))
-    if augmentPhy:
-        return tf.data.Dataset.from_generator(generate_data, args=[filepath, units, augmentPhy, mode],
-                                              output_types=(tf.float32, tf.float32), output_shapes=([1, 50, 49], [1, ]))
-    else:
-        return tf.data.Dataset.from_generator(generate_data, args=[filepath, units, augmentPhy, mode],
-                                              output_types=(tf.float32, tf.float32),
-                                              output_shapes=([1, 50, 35], [1, 1]))
+    return tf.data.Dataset.from_generator(generate_data, args=[filepath,units,mode], output_types=(tf.float32,tf.float32), output_shapes=([1,50,35],[1,1]))
+# training_dataset = tf.data.Dataset.from_generator(
+#      raw_data_gen, 
+#      args=(1), 
+#      output_types=(tf.float32, tf.uint8), 
+#      output_shapes=([None, 1], [None]))
+
+if __name__ == '__main__':
+    fname = '../../data_set/N-CMAPSS_DS02-006.h5'
+    a = DataProvider(fname, [],"dev")
+    b, c = a[0]
+    print(b.shape, c.shape)
+    tf_ds = get_dataset(fname, [],"dev")
