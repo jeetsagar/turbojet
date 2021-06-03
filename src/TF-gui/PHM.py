@@ -6,28 +6,18 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-import matplotlib.pyplot as plt
-
-from PyQt5 import QtCore, QtGui, QtWidgets
+import os
 
 import h5py
-import bisect
+import matplotlib.pyplot as plt
 import numpy as np
-
+import pandas as pd
+from PyQt5 import QtCore, QtWidgets
 from matplotlib.figure import Figure
 
-import tfdata
 from tfdata import get_dataset
-
-import pandas as pd
-
-import tftrain
-from tftrain import trainModel
-
 from tftest import InferModel
-import matplotlib.image as mpimg
-
-import os
+from tftrain import trainModel
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
